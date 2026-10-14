@@ -1,5 +1,5 @@
-# shellcheck source=/dev/null
 #!/bin/bash
+# shellcheck source=/dev/null
 FULL_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$FULL_PATH")"
 source "$SCRIPT_DIR/.env"
