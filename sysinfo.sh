@@ -1,3 +1,4 @@
+# shellcheck source=/dev/null
 #!/bin/bash
 FULL_PATH="$(realpath "$0")"
 SCRIPT_DIR="$(dirname "$FULL_PATH")"
@@ -35,9 +36,9 @@ check_mem () {
 	MEM_USED=$(( ((MEM_TTL - MEM_AVL) * 100) / MEM_TTL ))
 	if [ "$MEM_USED" -gt "$MEM_LIMIT" ]; then
 		echo "ВНИМАНИЕ: использовано $MEM_USED% памяти"
-		send_tg "ВНИМАНИЕ: $(hostname), использовано $MEM_USED% памяти"
+		send_tg "ВНИМАНИЕ: $(hostname), использовано $MEM_USED% ОЗУ"
 	else
-		echo "$MEM_AVL памяти доступно"
+		echo "$MEM_AVL ОЗУ мегабайт доступно"
 	fi
 	echo "$(date '+%F %T') $MEM_USED% использовано" >> "$SCRIPT_DIR/disk.log"
 }
