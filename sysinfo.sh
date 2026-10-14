@@ -5,6 +5,8 @@ SCRIPT_DIR="$(dirname "$FULL_PATH")"
 source "$SCRIPT_DIR/.env"
 DISK_LIMIT=80
 MEM_LIMIT=90
+SERVICES=(ssh.socket samba-ad-dc tailscaled)
+
 
 send_tg () {
 	curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="$1" > /dev/null
@@ -43,8 +45,20 @@ check_mem () {
 	echo "$(date '+%F %T') $MEM_USED% использовано" >> "$SCRIPT_DIR/disk.log"
 }
 
+check_srvc () {
+	for SERVICE in "${SERVICES[@]}"; do
+		STATUS=$(systemctl is-active "$SERVICE")
+		if [ "$STATUS" != active ]; then
+			echo "ВНИМАНИЕ: служба $SERVICE не активна." 
+			send_tg "ВНИМАНИЕ: служба $SERVICE не активна."
+		else
+			echo "Служба $SERVICE активна."
+		fi
+			echo "$(date '+%F %T') Служба $SERVICE $STATUS" >> "$SCRIPT_DIR/disk.log"
+	done
+}
 
 show_info
 check_disk
 check_mem
-
+check_srvc
