@@ -1,17 +1,49 @@
 #!/bin/bash
-source /home/denis/scripts/.env
-echo "Сервер: $(hostname)"
-date
-uptime
-df -h /
-DISK_USED=$(df --output=pcent / | tail -n 1 | tr -d ' %')
-echo "Диск занят: $DISK_USED%"
-LIMIT=80
-if [ "$DISK_USED" -gt "$LIMIT" ]; then
-	echo "ВНИМАНИЕ: диск занят на $DISK_USED%"
-	curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="ВНИМАНИЕ! Сервер $(hostname). Диск занят: $DISK_USED%." > /dev/null
-else
-	echo "Диск в норме"
-fi
+FULL_PATH="$(realpath "$0")"
+SCRIPT_DIR="$(dirname "$FULL_PATH")"
+source "$SCRIPT_DIR/.env"
+DISK_LIMIT=80
+MEM_LIMIT=90
 
-echo $(date '+%F %T') "диск" $DISK_USED% >> ~/scripts/disk.log
+send_tg () {
+	curl -s -X POST "https://api.telegram.org/bot$TOKEN/sendMessage" -d chat_id="$CHAT_ID" -d text="$1" > /dev/null
+}
+
+show_info () {
+	echo "Сервер: $(hostname)"
+	date
+	uptime
+	df -h /
+}
+
+
+check_disk () {
+	DISK_USED=$(df --output=pcent / | tail -n 1 | tr -d ' %')
+	echo "Диск занят: $DISK_USED%"
+	if [ "$DISK_USED" -gt "$DISK_LIMIT" ]; then
+		echo "ВНИМАНИЕ: диск занят на $DISK_USED%"
+		send_tg "ВНИМАНИЕ: $(hostname), диск занят на $DISK_USED% (лимит $DISK_LIMIT%)"
+	else
+		echo "Диск в норме"
+	fi
+	echo "$(date '+%F %T') диск $DISK_USED%" >> "$SCRIPT_DIR/disk.log"
+}
+
+check_mem () {
+	MEM_TTL=$(free -m | awk  '/Mem:/ {print $2}')
+	MEM_AVL=$(free -m | awk '/Mem:/ {print $7}')
+	MEM_USED=$(( ((MEM_TTL - MEM_AVL) * 100) / MEM_TTL ))
+	if [ "$MEM_USED" -gt "$MEM_LIMIT" ]; then
+		echo "ВНИМАНИЕ: использовано $MEM_USED% памяти"
+		send_tg "ВНИМАНИЕ: $(hostname), использовано $MEM_USED% памяти"
+	else
+		echo "$MEM_AVL памяти доступно"
+	fi
+	echo "$(date '+%F %T') $MEM_USED% использовано" >> "$SCRIPT_DIR/disk.log"
+}
+
+
+show_info
+check_disk
+check_mem
+
