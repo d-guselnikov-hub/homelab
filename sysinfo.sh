@@ -5,7 +5,7 @@ SCRIPT_DIR="$(dirname "$FULL_PATH")"
 source "$SCRIPT_DIR/.env"
 DISK_LIMIT=80
 MEM_LIMIT=90
-SERVICES=(ssh.socket samba-ad-dc tailscaled)
+SERVICES=(ssh.socket samba-ad-dc tailscaled cockpit.socket)
 
 
 send_tg () {
