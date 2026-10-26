@@ -1,2 +1,4 @@
 disk.log
 .env
+*.swp
+*.save
